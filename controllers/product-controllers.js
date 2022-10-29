@@ -1,0 +1,265 @@
+const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const crypto = require('crypto');
+
+const Product = require('../models/product-model');
+const catchAsync = require("../utils/catchAsync");
+const AppError = require('../utils/appError');
+const getImageFromBucket = require('../utils/getImageFromBucket');
+
+// Fn to generate random image name
+const randomImageName = () => {
+    return crypto.randomBytes(32).toString('hex');
+};
+
+// Creating a S3 client
+const s3 = new S3Client({
+    credentials: {
+        accessKeyId: process.env.BUCKET_ACCESS_KEY,
+        secretAccessKey: process.env.BUCKET_SECRET_ACCESS_KEY,
+    },
+    region: process.env.BUCKET_REGION
+});
+
+// GET All the products stored in the DB
+const getAllProducts = catchAsync(async (req, res, next) => {
+
+    // Get the products from the DB
+    const products = await Product.find();
+
+    // Convert the image name stored in the DB to the image url we'll use 
+    // to fetch the image
+    for (const product of products) {
+        product.image = await getImageFromBucket(product.image);
+    }
+
+    res.json({
+        status: 'success',
+        results: products.length,
+        data: {
+            products
+        }
+    })
+
+});
+
+// GET a product from product id
+const getProductFromId = catchAsync(async (req, res, next) => {
+
+    const productId = req.params.productId;
+
+    // Search for the required product
+    const product = await Product.findById(productId);
+
+    // If product does not exists, send an error
+    if (!product)
+        return next(new AppError(404, `No product found with product id ${productId}`));
+
+    product.image = await getImageFromBucket(product.image);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            product
+        }
+    });
+
+});
+
+// GET products by category
+const getProductsByCategory = catchAsync(async (req, res, next) => {
+
+    const category = req.params.category.toString();
+
+    const products = await Product.find({ category: category });
+
+    if (!products) {
+        next();
+    }
+
+    // Convert the image name stored in the DB to the image url we'll use 
+    // to fetch the image
+    for (const product of products) {
+
+        // Set params before sending the request
+        const getObjParams = {
+            Bucket: process.env.BUCKET_NAME,
+            Key: product.image,
+        }
+
+        // Send a get request for the image
+        const getObjCommand = new GetObjectCommand(getObjParams);
+        const url = await getSignedUrl(s3, getObjCommand, { expiresIn: 3600 });
+
+        // Set the fetch url to the image
+        product.image = url;
+    }
+
+    res.status(200).json({
+        status: 'success',
+        results: products.length,
+        products
+    });
+
+});
+
+// POST A new product by the seller
+const postAProduct = catchAsync(async (req, res, next) => {
+
+    // Extract the required data from req.body
+    const { name, category, subCategory, price, quantityPerBox, calories, veg, description, icon, rating } = req.body;
+
+    // All textual data comes in req.body
+    // All image data comes in req.file
+    // Actual image = req.file.buffer
+
+    // Get a new random image name
+    const newImageName = randomImageName();
+
+    // Set params before sending the request
+    const params = {
+        Bucket: process.env.BUCKET_NAME,
+        Key: newImageName,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype
+    };
+
+    // Create and send command to send and store the object - image
+    const putObjCommand = new PutObjectCommand(params);
+    await s3.send(putObjCommand);
+
+    // Create a new document to be stored in the DB
+    const newProduct = await Product.create({
+        name,
+        category,
+        subCategory,
+        price,
+        quantityPerBox,
+        calories,
+        veg,
+        description,
+        icon,
+        image: newImageName,
+        sellerId: req.user._id,
+        rating
+    });
+
+    res.status(201).json({
+        status: 'success',
+        data: {
+            product: newProduct
+        }
+    });
+
+});
+
+// UPDATE a product from product id
+const updateProductById = catchAsync(async (req, res, next) => {
+
+    const productId = req.params.productId;
+
+    // Search the required product 
+    const product = await Product.findById(productId);
+
+    // If product does not exists, send an error
+    if (!product)
+        return next(new AppError(404, `No product found with product id ${productId}`));
+
+    // Extract the required data from req.body
+    const { name, category, subCategory, price, quantityPerBox, calories, veg, description, icon, rating } = req.body;
+
+    // All textual data comes in req.body
+    // All image data comes in req.file
+    // Actual image = req.file.buffer
+
+    let newImageName;
+
+    if (req.file) {
+
+        // Set params before sending a request
+        const delparams = {
+            Bucket: process.env.BUCKET_NAME,
+            Key: product.image
+        }
+
+        // Create and send the delete object command
+        const delObjCommand = new DeleteObjectCommand(delparams);
+        await s3.send(delObjCommand);
+
+        // Get a new random image name
+        newImageName = randomImageName();
+
+        // Set params before sending the request
+        const updateparams = {
+            Bucket: process.env.BUCKET_NAME,
+            Key: newImageName,
+            Body: req.file.buffer,
+            ContentType: req.file.mimetype
+        };
+
+        // Create and send command to send and store the object - image
+        const putObjCommand = new PutObjectCommand(updateparams);
+        await s3.send(putObjCommand);
+    }
+
+    console.log({ name, category, subCategory, price, quantityPerBox, calories, veg, description, icon, rating });
+
+    // Create a new document to be stored in the DB
+    const updatedProduct = await Product.findByIdAndUpdate(productId, {
+        name,
+        category,
+        subCategory,
+        price,
+        quantityPerBox,
+        calories,
+        veg,
+        description,
+        icon,
+        image: newImageName,
+        sellerId: req.user._id,
+        rating
+    }, { new: true });
+
+    res.status(201).json({
+        status: 'success',
+        data: {
+            product: updatedProduct
+        }
+    });
+
+
+});
+
+// DELETE A product by the seller
+const deleteAProduct = catchAsync(async (req, res, next) => {
+
+    const productId = req.params.productId;
+
+    // Search the required product 
+    const product = await Product.findById(productId);
+
+    // If product does not exists, send an error
+    if (!product)
+        return next(new AppError(404, `No product found with product id ${productId}`));
+
+    // Set params before sending a request
+    const params = {
+        Bucket: process.env.BUCKET_NAME,
+        Key: product.image
+    }
+
+    // Create and send the delete object command
+    const delObjCommand = new DeleteObjectCommand(params);
+    await s3.send(delObjCommand);
+
+    // Delete the product from the DB
+    await Product.findByIdAndDelete(productId);
+
+    res.status(204).json({
+        status: 'success',
+        data: null
+    });
+
+});
+
+module.exports = { postAProduct, getAllProducts, deleteAProduct, getProductFromId, getProductsByCategory, updateProductById };
