@@ -1,5 +1,5 @@
-const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const validator = require('validator');
 const crypto = require('crypto');
 const getImageFromBucket = require('../utils/getImageFromBucket');
 
@@ -50,7 +50,10 @@ const getCategories = catchAsync(async (req, res, next) => {
 
 const postACategory = catchAsync(async (req, res, next) => {
 
-    const { category } = req.body;
+    const { category, description } = req.body;
+
+    if (validator.isEmpty(category) || validator.isEmpty(description))
+        return next(new AppError(400, 'Please add category name and description'));
 
     // Get a new random image name
     const newImageName = randomImageName();

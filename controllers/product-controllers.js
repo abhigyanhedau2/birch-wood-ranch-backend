@@ -1,6 +1,7 @@
 const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const crypto = require('crypto');
+const validator = require('validator');
 
 const Product = require('../models/product-model');
 const catchAsync = require("../utils/catchAsync");
@@ -115,6 +116,17 @@ const postAProduct = catchAsync(async (req, res, next) => {
     // Extract the required data from req.body
     const { name, category, subCategory, price, quantityPerBox, calories, veg, description, icon, rating } = req.body;
 
+    if (validator.isEmpty(name) ||
+        validator.isEmpty(category) ||
+        validator.isEmpty(price) ||
+        validator.isEmpty(quantityPerBox) ||
+        validator.isEmpty(calories) ||
+        validator.isEmpty(veg) ||
+        validator.isEmpty(description) ||
+        validator.isEmpty(icon) ||
+        validator.isEmpty(rating))
+        return next(new AppError(400, 'Please add complete and correct details for product addition'));
+
     // All textual data comes in req.body
     // All image data comes in req.file
     // Actual image = req.file.buffer
@@ -174,6 +186,18 @@ const updateProductById = catchAsync(async (req, res, next) => {
     // Extract the required data from req.body
     const { name, category, subCategory, price, quantityPerBox, calories, veg, description, icon, rating } = req.body;
 
+    if (validator.isEmpty(name) ||
+        validator.isEmpty(category) ||
+        validator.isEmpty(price) ||
+        validator.isEmpty(quantityPerBox) ||
+        validator.isEmpty(calories) ||
+        validator.isEmpty(veg) ||
+        validator.isEmpty(description) ||
+        validator.isEmpty(icon) ||
+        validator.isEmpty(rating))
+        return next(new AppError(400, 'Please add complete and correct details for product addition'));
+
+
     // All textual data comes in req.body
     // All image data comes in req.file
     // Actual image = req.file.buffer
@@ -207,8 +231,6 @@ const updateProductById = catchAsync(async (req, res, next) => {
         const putObjCommand = new PutObjectCommand(updateparams);
         await s3.send(putObjCommand);
     }
-
-    console.log({ name, category, subCategory, price, quantityPerBox, calories, veg, description, icon, rating });
 
     // Create a new document to be stored in the DB
     const updatedProduct = await Product.findByIdAndUpdate(productId, {
