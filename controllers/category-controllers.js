@@ -88,6 +88,18 @@ const deleteACategory = catchAsync(async (req, res, next) => {
 
     await Product.deleteMany({ category });
 
+    const toBeDeletedCategory = await Category.findOne({ category });
+
+    // Set params before sending a request
+    const params = {
+        Bucket: process.env.BUCKET_NAME,
+        Key: toBeDeletedCategory.image
+    }
+
+    // Create and send the delete object command
+    const delObjCommand = new DeleteObjectCommand(params);
+    await s3.send(delObjCommand);
+
     await Category.deleteMany({ category });
 
     return res.status(204).json({
