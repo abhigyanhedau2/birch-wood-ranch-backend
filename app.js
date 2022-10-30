@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const connectToDB = require('./utils/connectToDB');
 const dotenv = require('dotenv');
+const cors = require('cors');
 dotenv.config();
 
 const productsRouter = require('./routes/product-routes');
@@ -18,6 +19,14 @@ const app = express();
 
 // To get the req.body values 
 app.use(bodyParser.json());
+
+app.use(cors());
+
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 app.use('/api/v1/products', productsRouter);
 app.use('/api/v1/users', usersRouter);
