@@ -27,6 +27,12 @@ const getAllProducts = catchAsync(async (req, res, next) => {
     // Get the products from the DB
     const products = await Product.find();
 
+    if (!products)
+        return res.status(204).json({
+            status: 'success',
+            data: null
+        });
+
     // Convert the image name stored in the DB to the image url we'll use 
     // to fetch the image
     for (const product of products) {

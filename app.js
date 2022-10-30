@@ -9,6 +9,7 @@ const usersRouter = require('./routes/user-routes');
 const cartRouter = require('./routes/cart-routes');
 const orderRouter = require('./routes/order-routes');
 const purchaseRouter = require('./routes/purchase-routes');
+const categoryRouter = require('./routes/category-routes');
 const globalErrorHandler = require('./utils/globalErrorHandler');
 
 const app = express();
@@ -23,12 +24,17 @@ app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/cart', cartRouter);
 app.use('/api/v1/orders', orderRouter);
 app.use('/api/v1/purchases', purchaseRouter);
+app.use('/api/v1/category', categoryRouter);
 
 app.use(globalErrorHandler);
 
 // Connecting to DB
 connectToDB();
 
-app.listen(process.env.PORT || 5000, () => {
-    console.log(`App listening on port ${process.env.PORT}`);
+// app.listen(process.env.PORT || 5000, () => {
+//     console.log(`App listening on port ${process.env.PORT}`);
+// });
+
+app.listen(5000, () => {
+    console.log(`App listening on port 5000`);
 });
