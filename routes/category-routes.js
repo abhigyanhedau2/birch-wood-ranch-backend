@@ -15,11 +15,9 @@ const { getCategories, postACategory, deleteACategory } = categoryControllers;
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.use(protect, restrictTo('seller'));
-
 router.route('/')
     .get(getCategories)
-    .post(upload.single('image'), postACategory)
-    .delete(deleteACategory);
+    .post(protect, restrictTo('seller'), upload.single('image'), postACategory)
+    .delete(protect, restrictTo('seller'), deleteACategory);
 
 module.exports = router;
