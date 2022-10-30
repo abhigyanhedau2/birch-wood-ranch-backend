@@ -74,6 +74,7 @@ const postACategory = catchAsync(async (req, res, next) => {
     const newCategory = await Category.create({
         category,
         image: newImageName,
+        description
     });
 
     res.status(201).json({
