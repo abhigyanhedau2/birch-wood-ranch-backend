@@ -15,18 +15,18 @@ const upload = multer({ storage: storage });
 
 const { postAProduct, getAllProducts, deleteAProduct, getProductFromId, getProductsByCategory, updateProductById, getAllSubCategories, postSubCategory } = productControllers;
 
+router.route('/subCategory')
+    .get(getAllSubCategories);  // GET all the subcategories
+
+router.route('/subCategory')
+    .post(protect, restrictTo('seller'), postSubCategory);  // POST all the subcategories
+
 // GET a product from product id
 router.route('/:productId')
     .get(getProductFromId);
 
 router.route('/category/:category')
     .get(getProductsByCategory);
-
-router.route('/subCategory')
-    .get(getAllSubCategories);  // GET all the subcategories
-
-router.route('/subCategory')
-    .post(protect, restrictTo('seller'), postSubCategory);  // POST all the subcategories
 
 // GET All the products stored in the DB
 router.route('/')
