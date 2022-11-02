@@ -147,11 +147,13 @@ const postAProduct = catchAsync(async (req, res, next) => {
     const putObjCommand = new PutObjectCommand(params);
     await s3.send(putObjCommand);
 
+    let productSubCategory = subCategory === "null" ? null : subCategory;
+
     // Create a new document to be stored in the DB
     const newProduct = await Product.create({
         name,
         category,
-        subCategory,
+        subCategory: productSubCategory,
         price,
         quantityPerBox,
         calories,
