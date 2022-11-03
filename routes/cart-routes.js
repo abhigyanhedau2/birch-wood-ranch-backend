@@ -16,6 +16,6 @@ router.route('/:userId')
     .patch(updateCart)  // UPDATE the cart if an item is added or removed
     .delete(deleteCart);    // DELETE the cart
 
-router.route('/unpopulated/:useId').get(getUnpopulatedCart);
+router.route('/unpopulated/:userId').get(getUnpopulatedCart);
 
 module.exports = router;
