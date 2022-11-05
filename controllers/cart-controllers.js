@@ -52,7 +52,13 @@ const getUnpopulatedCart = catchAsync(async (req, res, next) => {
     if (!cart)
         return res.status(204).json({
             status: 'success',
-            data: null
+            data: {
+                cart: {
+                    products: [],
+                    totalItems: 0,
+                    cartPrice: 0
+                }
+            }
         });
 
     // Else send success
