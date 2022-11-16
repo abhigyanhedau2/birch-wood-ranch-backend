@@ -9,7 +9,7 @@ const orderSchema = new mongoose.Schema({
     orderedOn: {
         type: Date,
         // default: new Date().toLocaleString()
-        default: (new Date()).toString()
+        default: (new Date()).toISOString()
     },
     totalProductsPrice: {
         type: Number
