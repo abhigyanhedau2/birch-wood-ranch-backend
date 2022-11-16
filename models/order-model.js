@@ -9,7 +9,6 @@ const orderSchema = new mongoose.Schema({
     orderedOn: {
         type: Date,
         default: new Date().toLocaleString()
-        // default: getISTTime()
     },
     totalProductsPrice: {
         type: Number
