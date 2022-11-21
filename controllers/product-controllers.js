@@ -111,6 +111,40 @@ const getProductsByCategory = catchAsync(async (req, res, next) => {
 
 });
 
+const getProductsBySellerId = catchAsync(async (req, res, next) => {
+
+    const sellerId = req.params.sellerId;
+
+    // console.log(sellerId);
+    // console.log(req.user._id);
+
+    if (sellerId !== req.user._id.toString())
+        return next(new AppError(401, 'Unauthorized access'));
+
+    const products = await Product.find();
+
+    if (!products)
+        return res.status(204).json({
+            status: 'success',
+            data: null
+        });
+
+    const currSellerProducts = products.filter(product => product.sellerId.toString() === sellerId);
+
+    for (const product of currSellerProducts) {
+        product.image = await getImageFromBucket(product.image);
+    }
+
+    res.json({
+        status: 'success',
+        results: currSellerProducts.length,
+        data: {
+            products: currSellerProducts
+        }
+    });
+
+});
+
 // POST A new product by the seller
 const postAProduct = catchAsync(async (req, res, next) => {
 
@@ -309,4 +343,4 @@ const postSubCategory = catchAsync(async (req, res, next) => {
 
 });
 
-module.exports = { postAProduct, getAllProducts, deleteAProduct, getProductFromId, getProductsByCategory, updateProductById, getAllSubCategories, postSubCategory };
+module.exports = { postAProduct, getAllProducts, deleteAProduct, getProductFromId, getProductsByCategory, updateProductById, getAllSubCategories, postSubCategory, getProductsBySellerId };
