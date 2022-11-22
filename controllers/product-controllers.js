@@ -221,7 +221,7 @@ const updateProductById = catchAsync(async (req, res, next) => {
     if (!product)
         return next(new AppError(404, `No product found with product id ${productId}`));
 
-    if (product.sellerId !== userId)
+    if (product.sellerId.toString() !== userId)
         return next(new AppError(401, `You cannot update the product since, you have not created it`));
 
     // Extract the required data from req.body
@@ -300,7 +300,7 @@ const deleteAProduct = catchAsync(async (req, res, next) => {
     if (!product)
         return next(new AppError(404, `No product found with product id ${productId}`));
 
-    if (product.sellerId !== userId)
+    if (product.sellerId.toString() !== userId)
         return next(new AppError(401, `You cannot delete the product since, you have not created it`));
 
     // Set params before sending a request
