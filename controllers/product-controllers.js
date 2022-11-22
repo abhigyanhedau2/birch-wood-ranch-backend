@@ -212,6 +212,7 @@ const postAProduct = catchAsync(async (req, res, next) => {
 const updateProductById = catchAsync(async (req, res, next) => {
 
     const productId = req.params.productId;
+    const userId = req.user._id.toString();
 
     // Search the required product 
     const product = await Product.findById(productId);
@@ -219,6 +220,9 @@ const updateProductById = catchAsync(async (req, res, next) => {
     // If product does not exists, send an error
     if (!product)
         return next(new AppError(404, `No product found with product id ${productId}`));
+
+    if (product.sellerId !== userId)
+        return next(new AppError(401, `You cannot update the product since, you have not created it`));
 
     // Extract the required data from req.body
     const { name, category, subCategory, price, quantityPerBox, calories, veg, description, icon, rating } = req.body;
@@ -287,6 +291,7 @@ const updateProductById = catchAsync(async (req, res, next) => {
 const deleteAProduct = catchAsync(async (req, res, next) => {
 
     const productId = req.params.productId;
+    const userId = req.user._id.toString();
 
     // Search the required product 
     const product = await Product.findById(productId);
@@ -294,6 +299,9 @@ const deleteAProduct = catchAsync(async (req, res, next) => {
     // If product does not exists, send an error
     if (!product)
         return next(new AppError(404, `No product found with product id ${productId}`));
+
+    if (product.sellerId !== userId)
+        return next(new AppError(401, `You cannot delete the product since, you have not created it`));
 
     // Set params before sending a request
     const params = {
