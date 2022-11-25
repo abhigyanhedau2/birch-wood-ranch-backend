@@ -1,5 +1,13 @@
 const mongoose = require('mongoose');
 
+function initDateInTimezone(offsetHours) {
+    const timezoneOffsetInMS = offsetHours * 60 * 60000;
+    let d = new Date().getTimezoneOffset() * 60000 + timezoneOffsetInMS;
+    const date = new Date(new Date().getTime() - d);
+    return date;
+}
+
+
 const orderSchema = new mongoose.Schema({
     // Product and it's description for seller to see and user id 
     product: {
@@ -8,7 +16,8 @@ const orderSchema = new mongoose.Schema({
     },
     orderedOn: {
         type: Date,
-        default: Date.now()
+        // default: Date.now()
+        default: initDateInTimezone(-5.5)
     },
     totalProductsPrice: {
         type: Number
