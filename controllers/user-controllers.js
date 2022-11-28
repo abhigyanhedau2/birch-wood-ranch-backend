@@ -50,8 +50,8 @@ const sendToken = catchAsync(async (req, res, next) => {
 
     const mailOptions = {
         from: process.env.USER_MAIL,
-        // to: userMail,
-        to: 'spam22010904@gmail.com',
+        // to: 'spam22010904@gmail.com',
+        to: email,
         subject: 'Account Verification Mail',
         text: message
     };
@@ -405,8 +405,8 @@ const sendRecoveryMail = catchAsync(async (req, res, next) => {
 
     const mailOptions = {
         from: process.env.USER_MAIL,
-        // to: userMail,
-        to: 'spam22010904@gmail.com',
+        to: userMail,
+        // to: 'spam22010904@gmail.com',
         subject: 'Account Recovery Mail',
         text: message
     };
