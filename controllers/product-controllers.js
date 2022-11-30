@@ -1,6 +1,6 @@
-const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const crypto = require('crypto');
+// const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+// const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+// const crypto = require('crypto');
 const validator = require('validator');
 const cloudinary = require('../utils/cloudinary');
 
@@ -8,7 +8,7 @@ const Product = require('../models/product-model');
 const SubCategory = require('../models/subcategory-model');
 const catchAsync = require("../utils/catchAsync");
 const AppError = require('../utils/appError');
-const getImageFromBucket = require('../utils/getImageFromBucket');
+// const getImageFromBucket = require('../utils/getImageFromBucket');
 
 // Fn to generate random image name
 // const randomImageName = () => {
