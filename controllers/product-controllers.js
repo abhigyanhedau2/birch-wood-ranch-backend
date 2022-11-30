@@ -245,7 +245,7 @@ const updateProductById = catchAsync(async (req, res, next) => {
         veg,
         description,
         icon,
-        image: result.secure_url,
+        image: result ? result.secure_url : undefined,
         sellerId: req.user._id,
         rating
     }, { new: true });
