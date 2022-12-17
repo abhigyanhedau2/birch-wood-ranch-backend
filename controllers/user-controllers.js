@@ -56,16 +56,7 @@ const sendToken = catchAsync(async (req, res, next) => {
         text: message
     };
 
-    const sendMail = async () => {
-        transporter.sendMail(mailOptions, function (error) {
-            if (error)
-                return next(new AppError(500, 'Internal server error'));
-            else
-                console.log('mail sent successfully');
-        });
-    };
-
-    await sendMail();
+    transporter.sendMail(mailOptions).then(response => console.log(response)).catch(err => console.log(err));
 
     res.status(200).json({
         status: 'success'
