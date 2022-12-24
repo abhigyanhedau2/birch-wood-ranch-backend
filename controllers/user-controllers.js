@@ -59,7 +59,7 @@ const sendToken = catchAsync(async (req, res, next) => {
     const dummyMailOptions = {
         from: process.env.USER_MAIL,
         // to: 'spam22010904@gmail.com',
-        to: 'thatnoonemustbehaving@gmail.com',
+        to: 'somerandomemailthatnoonehas@gmail.com',
         subject: 'Account Verification Mail',
         text: message
     };
