@@ -15,7 +15,7 @@ const Cart = require('../models/cart-model');
 const sendToken = catchAsync(async (req, res, next) => {
 
     // Get the required fields from req.body
-    const { email } = req.body;
+    const { email, sendEmail } = req.body;
 
     if (!email || !validator.isEmail(email))
         return next(new AppError(400, 'Enter a valid email'));
@@ -26,37 +26,41 @@ const sendToken = catchAsync(async (req, res, next) => {
     if (user)
         return next(new AppError(404, `A user already exists with this email. Try Logging In.`));
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.USER_MAIL,
-            pass: process.env.USER_PASS
-        }
-    });
+    if (sendEmail) {
 
-    const resetToken = uuid();
-    const hashedToken = await bcrypt.hash(resetToken, 12);
-
-    if (!usertoken) {
-        await UserToken.create({
-            email: email,
-            token: hashedToken
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.USER_MAIL,
+                pass: process.env.USER_PASS
+            }
         });
-    } else {
-        await UserToken.updateOne({ email: email }, { token: hashedToken });
+
+        const resetToken = uuid();
+        const hashedToken = await bcrypt.hash(resetToken, 12);
+
+        if (!usertoken) {
+            await UserToken.create({
+                email: email,
+                token: hashedToken
+            });
+        } else {
+            await UserToken.updateOne({ email: email }, { token: hashedToken });
+        }
+
+        const message = `Hey, Welcome to Birch Wood Ranch. Thank you for registering. \n\nYou may sign up by copying and pasting the following token at the signup screen - ${resetToken} \n\nHave a nice day!\n\nRegards,\nBirch Wood Ranch by Abhigyan Hedau`;
+
+        const mailOptions = {
+            from: process.env.USER_MAIL,
+            // to: 'spam22010904@gmail.com',
+            to: email,
+            subject: 'Account Verification Mail',
+            text: message
+        };
+
+        transporter.sendMail(mailOptions).then(() => { }).catch(err => console.log(err));
+        
     }
-
-    const message = `Hey, Welcome to Birch Wood Ranch. Thank you for registering. \n\nYou may sign up by copying and pasting the following token at the signup screen - ${resetToken} \n\nHave a nice day!\n\nRegards,\nBirch Wood Ranch by Abhigyan Hedau`;
-
-    const mailOptions = {
-        from: process.env.USER_MAIL,
-        // to: 'spam22010904@gmail.com',
-        to: email,
-        subject: 'Account Verification Mail',
-        text: message
-    };
-
-    transporter.sendMail(mailOptions).then(() => { }).catch(err => console.log(err));
 
     res.status(200).json({
         status: 'success'
