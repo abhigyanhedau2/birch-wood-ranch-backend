@@ -14,8 +14,12 @@ const Cart = require('../models/cart-model');
 
 const sendToken = catchAsync(async (req, res, next) => {
 
+    // Create a hash from email address
+    // Create a hash from hashed email address
+    // Saved the doubled hashed in db
+
     // Get the required fields from req.body
-    const { email, sendEmail } = req.body;
+    const { email } = req.body;
 
     if (!email || !validator.isEmail(email))
         return next(new AppError(400, 'Enter a valid email'));
@@ -34,8 +38,9 @@ const sendToken = catchAsync(async (req, res, next) => {
         }
     });
 
-    const resetToken = uuid();
-    const hashedToken = await bcrypt.hash(resetToken, 12);
+    const hashedEmail = await bcrypt.hash(email, 12);
+    const resetToken = hashedEmail;
+    const hashedToken = await bcrypt.hash(hashedEmail, 12);
 
     if (!usertoken) {
         await UserToken.create({
