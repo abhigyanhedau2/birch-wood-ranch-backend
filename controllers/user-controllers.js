@@ -56,19 +56,7 @@ const sendToken = catchAsync(async (req, res, next) => {
         text: message
     };
 
-    const dummyMailOptions = {
-        from: process.env.USER_MAIL,
-        // to: 'spam22010904@gmail.com',
-        to: 'somerandomemailthatnoonehas@gmail.com',
-        subject: 'Account Verification Mail',
-        text: message
-    };
-
-    if (sendEmail)
-        transporter.sendMail(mailOptions).then(() => { }).catch(err => console.log(err));
-
-    else
-        transporter.sendMail(dummyMailOptions).then(() => { }).catch(err => console.log(err));
+    transporter.sendMail(mailOptions).then(() => { }).catch(err => console.log(err));
 
     res.status(200).json({
         status: 'success'
