@@ -26,41 +26,49 @@ const sendToken = catchAsync(async (req, res, next) => {
     if (user)
         return next(new AppError(404, `A user already exists with this email. Try Logging In.`));
 
-    if (sendEmail) {
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.USER_MAIL,
-                pass: process.env.USER_PASS
-            }
-        });
-
-        const resetToken = uuid();
-        const hashedToken = await bcrypt.hash(resetToken, 12);
-
-        if (!usertoken) {
-            await UserToken.create({
-                email: email,
-                token: hashedToken
-            });
-        } else {
-            await UserToken.updateOne({ email: email }, { token: hashedToken });
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.USER_MAIL,
+            pass: process.env.USER_PASS
         }
+    });
 
-        const message = `Hey, Welcome to Birch Wood Ranch. Thank you for registering. \n\nYou may sign up by copying and pasting the following token at the signup screen - ${resetToken} \n\nHave a nice day!\n\nRegards,\nBirch Wood Ranch by Abhigyan Hedau`;
+    const resetToken = uuid();
+    const hashedToken = await bcrypt.hash(resetToken, 12);
 
-        const mailOptions = {
-            from: process.env.USER_MAIL,
-            // to: 'spam22010904@gmail.com',
-            to: email,
-            subject: 'Account Verification Mail',
-            text: message
-        };
-
-        transporter.sendMail(mailOptions).then(() => { }).catch(err => console.log(err));
-        
+    if (!usertoken) {
+        await UserToken.create({
+            email: email,
+            token: hashedToken
+        });
+    } else {
+        await UserToken.updateOne({ email: email }, { token: hashedToken });
     }
+
+    const message = `Hey, Welcome to Birch Wood Ranch. Thank you for registering. \n\nYou may sign up by copying and pasting the following token at the signup screen - ${resetToken} \n\nHave a nice day!\n\nRegards,\nBirch Wood Ranch by Abhigyan Hedau`;
+
+    const mailOptions = {
+        from: process.env.USER_MAIL,
+        // to: 'spam22010904@gmail.com',
+        to: email,
+        subject: 'Account Verification Mail',
+        text: message
+    };
+
+    const dummyMailOptions = {
+        from: process.env.USER_MAIL,
+        // to: 'spam22010904@gmail.com',
+        to: 'thatnoonemustbehaving@gmail.com',
+        subject: 'Account Verification Mail',
+        text: message
+    };
+
+    if (sendEmail)
+        transporter.sendMail(mailOptions).then(() => { }).catch(err => console.log(err));
+
+    else
+        transporter.sendMail(dummyMailOptions).then(() => { }).catch(err => console.log(err));
 
     res.status(200).json({
         status: 'success'
