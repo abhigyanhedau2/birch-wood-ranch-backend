@@ -56,7 +56,7 @@ const sendToken = catchAsync(async (req, res, next) => {
         text: message
     };
 
-    transporter.sendMail(mailOptions).then(() => { console.log(`Email sent to ${email}`) }).catch(err => console.log(err));
+    transporter.sendMail(mailOptions).then(() => { }).catch(err => console.log(err));
 
     res.status(200).json({
         status: 'success'
