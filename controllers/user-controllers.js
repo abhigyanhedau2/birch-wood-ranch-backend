@@ -12,16 +12,6 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Cart = require('../models/cart-model');
 
-const hashMail = async (toBeHashedString) => {
-    // Generate a salt and then create hash
-    const hashedPassword = pbkdf2
-        .pbkdf2Sync(toBeHashedString, "secret", 10, 32, "sha512")
-        .toString("hex");
-
-    // Saving both the dynamic salt and hash in the Database
-    return hashedPassword;
-};
-
 const sendToken = catchAsync(async (req, res, next) => {
 
     // Create a hash from email address
@@ -29,7 +19,7 @@ const sendToken = catchAsync(async (req, res, next) => {
     // Saved the doubled hashed in db
 
     // Get the required fields from req.body
-    const { email } = req.body;
+    const { email, hash } = req.body;
 
     if (!email || !validator.isEmail(email))
         return next(new AppError(400, 'Enter a valid email'));
@@ -48,7 +38,7 @@ const sendToken = catchAsync(async (req, res, next) => {
         }
     });
 
-    const hashedEmail = await hashMail(email);
+    const hashedEmail = hash;
     const resetToken = hashedEmail;
     const hashedToken = await bcrypt.hash(hashedEmail, 12);
 
@@ -391,6 +381,7 @@ const deleteMe = catchAsync(async (req, res, next) => {
 const sendRecoveryMail = catchAsync(async (req, res, next) => {
 
     const userMail = req.body.email;
+    const hash = req.body.hash;
 
     if (!userMail || !validator.isEmail(userMail))
         return next(new AppError(400, 'Enter a valid email'));
@@ -408,7 +399,7 @@ const sendRecoveryMail = catchAsync(async (req, res, next) => {
         }
     });
 
-    const resetToken = await hashMail(user.number.toString());
+    const resetToken = hash;
     const hashedToken = await bcrypt.hash(resetToken, 12);
 
     const message = `Hey ${user.name}, \n\nForgot your password?\nWe received a request to reset the password for your Birch Wood Ranch Account.\n\nTo reset your password, enter the following token at the forgot password page - ${resetToken}\n\nHave a nice day!\n\nRegards,\nBirch Wood Ranch by Abhigyan Hedau`;
